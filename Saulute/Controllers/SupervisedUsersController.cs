@@ -32,6 +32,18 @@ namespace Addicted.Controllers
             return Ok(supervisedUsers);
         }
 
+
+        [HttpGet("{id}/info")]
+        public ActionResult<dynamic> GetSupervisedUserById(int ?id)
+        {
+            var supervisedUser = _context.SupervisedUsers
+                .Include(supervised => supervised.Watcher)
+                .Where(supervised => supervised.Id == id).SingleOrDefault();
+
+            return Ok(supervisedUser);
+        }
+
+
         [HttpPost("{user_id}")]
         public async Task<IActionResult> Create(string userId, [FromBody] SupervisedUser supervisedUser)
         {

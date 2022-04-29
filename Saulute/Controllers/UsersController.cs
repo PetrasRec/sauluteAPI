@@ -50,6 +50,20 @@ namespace Addicted.Controllers
             return Ok(user);
         }
 
+        [HttpGet("{id}")]
+        [Authorize()]
+        public ActionResult<dynamic> GetUserById(string? id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var user = usersService.GetUserById(id);
+            return Ok(user);
+        }
+
+
         [HttpPut("{id}")]
         [Authorize()]
         public async Task<dynamic> UpdateUserByID(string ?id, [FromBody] UserModel newData)

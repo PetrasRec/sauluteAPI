@@ -149,11 +149,11 @@ namespace Addicted
             {
                 Name = "root",
                 Surname = "root",
-                UserName = "root@addicted.com",
-                Email = "root@addicted.com",
+                UserName = "root@saulute.com",
+                Email = "root@saulute.com",
             };
             //Ensure you have these values in your appsettings.json file
-            var _user = await UserManager.FindByEmailAsync("root@addicted.com");
+            var _user = await UserManager.FindByEmailAsync("root@saulute.com");
 
             if (_user == null)
             {

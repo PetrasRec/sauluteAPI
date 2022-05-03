@@ -15,6 +15,10 @@
     <Compile Remove="Migrations\20210515150519_addOfferModel.Designer.cs" />
     <Compile Remove="Migrations\20210515150735_addOfferModel.cs" />
     <Compile Remove="Migrations\20210515150735_addOfferModel.Designer.cs" />
+    <Compile Remove="Migrations\20220503153257_Add-Beacon-Classes.cs" />
+    <Compile Remove="Migrations\20220503153257_Add-Beacon-Classes.Designer.cs" />
+    <Compile Remove="Migrations\20220503153327_Add-Beacon-Class.cs" />
+    <Compile Remove="Migrations\20220503153327_Add-Beacon-Class.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -64,5 +64,12 @@ namespace Saulute.Controllers
 
             return Ok(beacon);
         }
+
+        [HttpPost("/{identification}/live-data")]
+        public async Task<IActionResult> AddBeaconLiveData(string identification, [FromBody] BeaconLiveData liveData)
+        {
+
+            return Ok();
+        }
     }
 }

@@ -32,8 +32,8 @@ namespace Addicted
         {
             Configuration = configuration;
             RSSIController contr = new RSSIController();
-            List<RSI> list=contr.GetLiveData();
-            System.Diagnostics.Debug.WriteLine("testas", list[0].Rsi);
+            List<int> list=contr.GetBeaconIds();
+            System.Diagnostics.Debug.WriteLine("testas {0}", list[0]);
         }
 
         public IConfiguration Configuration { get; }
@@ -109,8 +109,8 @@ namespace Addicted
             //    options.Secure = CookieSecurePolicy.Always;
             //});
 
-          // var serviceProvider = services.BuildServiceProvider();
-          // CreateRoles(serviceProvider).Wait();
+          var serviceProvider = services.BuildServiceProvider();
+           CreateRoles(serviceProvider).Wait();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -34,6 +34,8 @@ namespace Addicted.Models
         public DbSet<Room> Rooms { get; set; }
 
         public DbSet<RSI> Rsi { get; set; }
+        public DbSet<UserBeacon> UserBeacons { get; set; }
+
         public List<User> GetAllUsers()
         {
             return Users.ToList();

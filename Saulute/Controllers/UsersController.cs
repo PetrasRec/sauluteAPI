@@ -23,7 +23,6 @@ namespace Addicted.Controllers
         }
 
         [HttpGet]
-        [Authorize()]
         public ActionResult<dynamic> GetAllUsers()
         {
             var users = usersService.GetAllUsers().Select(async u =>
@@ -42,6 +41,7 @@ namespace Addicted.Controllers
             }).Select(u=>u.Result);
             return Ok(users);
         }
+
         [HttpGet("profile")]
         [Authorize()]
         public ActionResult<dynamic> GetUser()
@@ -83,7 +83,6 @@ namespace Addicted.Controllers
         }
 
         [HttpPost]
-        [Authorize()]
         public async Task<dynamic> AddNewUser([FromBody] UserModel user)
         {
             var addedUser = await usersService.AddNewUser(user);

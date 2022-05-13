@@ -31,11 +31,7 @@ namespace Saulute.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetAllBeacons()
         {
-            
-            var beacons = await _context.Beacons
-                .Include(b => b.Rooms)
-                .ToListAsync();
-
+            var beacons = await _context.UserBeacons.ToListAsync();
             return Ok(beacons);
         }
 
@@ -54,6 +50,26 @@ namespace Saulute.Controllers
             await _context.Beacons.AddAsync(beacon);
             await _context.SaveChangesAsync();
             return Ok(beacon);
+        }
+
+        [HttpPost("{userId}/users")]
+        public async Task<IActionResult> CreateUserBeacons(string userId, [FromBody] UserBeacon beacon)
+        {
+            beacon.User = _context.Users.Where(user => user.Id == userId).SingleOrDefault();
+
+            await _context.UserBeacons.AddAsync(beacon);
+            await _context.SaveChangesAsync();
+            return Ok(beacon);
+        }
+
+        [HttpGet("{userId}/users")]
+        public async Task<IActionResult> GetUserBeacons(string userId)
+        {
+            var beacons = _context.UserBeacons
+               .Include(supervised => supervised.User)
+               .Where(supervised => supervised.User.Id == userId);
+
+            return Ok(beacons);
         }
 
         [HttpPost("{identification}/rooms")]

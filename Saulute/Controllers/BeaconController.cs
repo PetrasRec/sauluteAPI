@@ -20,7 +20,6 @@ namespace Saulute.Controllers
     {
         private readonly AuthenticationContext _context;
         private readonly UserManager<User> _userManager;
-        MqttClient client;
 
         public BeaconController(AuthenticationContext context, UserManager<User> userManager)
         {

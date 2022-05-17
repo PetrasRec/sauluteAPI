@@ -31,9 +31,9 @@ namespace Addicted
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            RSSIController contr = new RSSIController();
-            List<int> list=contr.GetBeaconIds();
-            System.Diagnostics.Debug.WriteLine("testas {0}", list[0]);
+           //RSSIController contr = new RSSIController();
+           // List<int> list=contr.GetBeaconIds();
+            //System.Diagnostics.Debug.WriteLine("testas {0}", list[0]);
         }
 
         public IConfiguration Configuration { get; }
@@ -74,8 +74,9 @@ namespace Addicted
             services.AddScoped<IUsersService, UsersService>();
             services.AddScoped<IJwtAuthenticationManager, JwtAuthenticationManager>();
 
+            var connectionStr = Configuration.GetConnectionString("IdentityConnection");
             services.AddDbContext<AuthenticationContext>(options => 
-                options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+                options.UseSqlServer(connectionStr));
 
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<AuthenticationContext>();
@@ -110,7 +111,7 @@ namespace Addicted
             //});
 
           var serviceProvider = services.BuildServiceProvider();
-           CreateRoles(serviceProvider).Wait();
+          CreateRoles(serviceProvider).Wait();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

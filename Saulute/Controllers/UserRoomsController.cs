@@ -71,35 +71,60 @@ namespace Saulute.Controllers
                 value.BeaconId = int.Parse(reader.GetString("svyturioid"));
                 data.Add(value);
             });
-            Random rnd = new Random();
             List<UserRoomData> userRoomData = new List<UserRoomData>();
+
+            double closestDist = 100000000;
+            int best_idx = -1;
+            int index = -1;
             foreach(var userRoom in userRooms)
             {
+                index++;
                 var rsiData = data.SingleOrDefault(rsi => rsi.BeaconId == userRoom.BeaconId);
                 if (rsiData == null)
                 {
                     continue;
                 }
-                double rssi = rsiData.Rsi;
-
                 double measuredPower = 10;
                 double N = 6;
 
-                double distance = Math.Pow(10, (measuredPower - rssi) / (10 * N)) + rnd.Next(1, 10);
+                Func<double, double> getDist = (rssi) => Math.Pow(10, (measuredPower - rssi) / (10 * N));
 
-                // something, deep MATH
+                // distances  from the corners to the beacon
+                double corner1Dist = getDist(userRoom.Corner1);
+                double corner2Dist = getDist(userRoom.Corner2);
+                double corner3Dist = getDist(userRoom.Corner3);
+                double corner4Dist = getDist(userRoom.Corner4);
+
+                double longestDist = new double[] { corner1Dist, corner2Dist, corner3Dist, corner4Dist }
+                                        .ToList()
+                                        .Max();
+
+                // longestDist is the radius of the circle
+                // The distance from the user to the beacon
+                double userDist = getDist(rsiData.Rsi);
+
+                double diff = longestDist - userDist;
+                if (diff > 0)
+                {
+                    if (closestDist > userDist)
+                    {
+                        closestDist = userDist;
+                        best_idx = index;
+                    }
+                }
                 userRoomData.Add(new UserRoomData
                 {
                     UserRoom = userRoom,
-                    Distance = Math.Round(distance, 1),
+                    Distance = Math.Round(userDist, 1),
                 });
             }
-            if (userRoomData.Count > 0)
+
+
+            if (best_idx != -1)
             {
-                // REMOVE THIS AFTER DOING THE MATH
-                var random_idx = rnd.Next(0, userRoomData.Count);
-                userRoomData[random_idx].IsInside = true;
+                userRoomData[best_idx].IsInside = true;
             }
+
             return Ok(userRoomData);
         }
 

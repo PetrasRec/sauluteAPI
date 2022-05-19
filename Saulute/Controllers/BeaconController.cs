@@ -30,9 +30,21 @@ namespace Saulute.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetAllBeacons()
         {
-            var beacons = await _context.UserBeacons.ToListAsync();
+            var beacons = _context.UserBeacons.Include(supervised => supervised.User)
+                .Where(supervised => supervised.User != null); ;
             return Ok(beacons);
         }
+
+        [HttpGet("{userId}/users")]
+        public async Task<IActionResult> GetUserBeacons(string userId)
+        {
+            var beacons = _context.UserBeacons
+               .Include(supervised => supervised.User)
+               .Where(supervised => supervised.User.Id == userId);
+
+            return Ok(beacons);
+        }
+
 
         [HttpGet("{identification}")]
         public async Task<IActionResult> GetBeaconById(string identification)
@@ -61,15 +73,18 @@ namespace Saulute.Controllers
             return Ok(beacon);
         }
 
-        [HttpGet("{userId}/users")]
-        public async Task<IActionResult> GetUserBeacons(string userId)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit([FromBody] UserBeacon beacon)
         {
-            var beacons = _context.UserBeacons
-               .Include(supervised => supervised.User)
-               .Where(supervised => supervised.User.Id == userId);
+            var dbBeacon = await _context.UserBeacons.FindAsync(beacon.BeaconId);
+            dbBeacon.BeaconId = beacon.BeaconId;
+            dbBeacon.User.UserName = beacon.User.UserName;
 
-            return Ok(beacons);
+            await _context.SaveChangesAsync();
+            return Ok(dbBeacon);
         }
+
+
 
         [HttpPost("{identification}/rooms")]
         public async Task<IActionResult> AddRoom(string identification, [FromBody] Room room)

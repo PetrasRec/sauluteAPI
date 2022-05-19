@@ -70,6 +70,8 @@ namespace Saulute.Controllers
                     )
                 AND
                     pagalba=0
+                AND
+                    rssi!=0
             ", (reader) =>
             {
                 RSI value = new RSI();
@@ -87,14 +89,20 @@ namespace Saulute.Controllers
             foreach(var userRoom in userRooms)
             {
                 index++;
-                var rsiData = data.SingleOrDefault(rsi => rsi.BeaconId == userRoom.BeaconId);
-                if (rsiData == null)
+                var rsiData = data.FirstOrDefault(rsi => rsi.BeaconId == userRoom.BeaconId);
+                if(rsiData == null || rsiData.Time < DateTime.Now.AddSeconds(-10))
                 {
+                    userRoomData.Add(new UserRoomData
+                    {
+                        UserRoom = userRoom,
+                        Distance = -1,
+                    });
                     continue;
                 }
-                double measuredPower = 10;
-                double N = 6;
+                double measuredPower = -65;
+                double N = 2;
 
+                double absRssi = Math.Abs(rsiData.Rsi);
                 Func<double, double> getDist = (rssi) => Math.Pow(10, (measuredPower - rssi) / (10 * N));
 
                 // distances  from the corners to the beacon
@@ -112,7 +120,7 @@ namespace Saulute.Controllers
                 double userDist = getDist(rsiData.Rsi);
 
                 double diff = longestDist - userDist;
-                if (diff > 0)
+                if (diff >= 0)
                 {
                     if (closestDist > userDist)
                     {

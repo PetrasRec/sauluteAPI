@@ -8,7 +8,7 @@ namespace Saulute.Common
 {
     public static class MySqlDb
     {
-        private static string connectionStr = "host=localhost;user=root;database=projektas;password=root";
+        private static string connectionStr = "host=localhost;user=root;database=projektas";
 
         public static void GetDataFromSql(string sqlQuery, Action<MySqlDataReader> fillData)
         {

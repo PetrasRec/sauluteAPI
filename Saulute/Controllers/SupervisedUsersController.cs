@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Saulute.Common;
+using Saulute.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,12 @@ namespace Addicted.Controllers
         private readonly AuthenticationContext _context;
         private readonly UserManager<User> _userManager;
 
+        private sealed class SupervisedUsersData
+        {
+            public List<SupervisedUser> SupervisedUsers { get; set; }
+            public List<RSI> HelpStamps { get; set; }
+        }
+
         public SupervisedUsersController(AuthenticationContext context, UserManager<User> userManager)
         {
             _context = context;
@@ -27,9 +35,47 @@ namespace Addicted.Controllers
         {
             var supervisedUsers = _context.SupervisedUsers
                 .Include(supervised => supervised.Watcher)
-                .Where(supervised => supervised.Watcher.Id == userId);
+                .Where(supervised => supervised.Watcher.Id == userId)
+                .ToList();
 
-            return Ok(supervisedUsers);
+            var userRooms = _context
+                .UserRooms
+                .Include(ur => ur.Owner)
+                .Where(ur => ur.Owner.Id == userId);
+
+            var beaconIdx = userRooms.Select(ur => ur.BeaconId.ToString());
+            var joinedIds = string.Join(",", beaconIdx.ToArray());
+
+            List<RSI> data = new List<RSI>();
+            MySqlDb.GetDataFromSql(
+                String.Format(
+                    @"
+                    SELECT
+                        *
+                    FROM 
+                        sensordata
+                    WHERE
+                        svyturioid={0}
+                    AND
+                        DATE(timestamp) == DATE(NOW())
+                    AND
+                        pagalba=1
+                    ",
+                joinedIds), (reader) =>
+            {
+                RSI value = new RSI();
+                value.Rsi = int.Parse(reader.GetString("rssi"));
+                value.IsRequested = reader.GetString("pagalba");
+                value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
+                value.BeaconId = int.Parse(reader.GetString("svyturioid"));
+                data.Add(value);
+            });
+
+            return Ok(new SupervisedUsersData
+            {
+                SupervisedUsers = supervisedUsers,
+                HelpStamps = data,
+            });
         }
 
 

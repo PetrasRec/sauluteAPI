@@ -21,6 +21,13 @@ namespace Saulute.Controllers
         {
             return View();
         }
+
+        sealed class HelpData
+        {
+            public DateTime CallTime { get; set; }
+            public UserRoom UserRoom { get; set; }
+        }
+
         sealed class UserRoomData
         {
             public UserRoom UserRoom { get; set; }
@@ -33,6 +40,7 @@ namespace Saulute.Controllers
         {
             _context = context;
         }
+
 
         [HttpGet("owner/{userId}/live")]
         public async Task<IActionResult> GetLiveData(string userId)

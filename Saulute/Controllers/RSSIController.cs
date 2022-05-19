@@ -34,7 +34,8 @@ namespace Saulute.Controllers
         {
             List<Room> data = new List<Room>();
 
-            MySqlDb.GetDataFromSql("select * from kambariudata where svyturioid=" + id.ToString(), (reader) =>
+            string input = "select * from kambariudata where svyturioid=" + id.ToString();
+            MySqlDb.GetDataFromSql(input, (reader) =>
             {
                 int roomId = int.Parse(reader.GetString("id"));
                 double edge1 = double.Parse(reader.GetString("kampas1"));

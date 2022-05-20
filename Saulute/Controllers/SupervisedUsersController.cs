@@ -18,6 +18,7 @@ namespace Addicted.Controllers
         private readonly AuthenticationContext _context;
         private readonly UserManager<User> _userManager;
 
+
         private sealed class SupervisedUsersData
         {
             public List<SupervisedUser> SupervisedUsers { get; set; }
@@ -30,47 +31,49 @@ namespace Addicted.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet("{user_id}")]
-        public async Task<IActionResult> Index(string userId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSupervisedUsers(string id)
         {
-            var supervisedUsers = _context.SupervisedUsers
+            var supervisedUsers = await _context.SupervisedUsers
                 .Include(supervised => supervised.Watcher)
-                .Where(supervised => supervised.Watcher.Id == userId)
-                .ToList();
+                .Where(supervised => supervised.Watcher.Id == id)
+                .ToListAsync();
 
             var userRooms = _context
                 .UserRooms
                 .Include(ur => ur.Owner)
-                .Where(ur => ur.Owner.Id == userId);
+                .Where(ur => ur.Owner.Id == id);
 
-            var beaconIdx = userRooms.Select(ur => ur.BeaconId.ToString());
+            var beaconIdx = userRooms.Select(ur => ur.BeaconId.ToString()).ToList();
             var joinedIds = string.Join(",", beaconIdx.ToArray());
 
             List<RSI> data = new List<RSI>();
-            MySqlDb.GetDataFromSql(
-                String.Format(
-                    @"
+            if (joinedIds.Length > 0)
+            {
+                MySqlDb.GetDataFromSql(
+                    String.Format(
+                        @"
                     SELECT
                         *
                     FROM 
                         sensordata
                     WHERE
-                        svyturioid={0}
+                        svyturioid in ({0})
                     AND
-                        DATE(timestamp) == DATE(NOW())
+                        DATE(timestamp) = DATE(NOW())
                     AND
                         pagalba=1
                     ",
-                joinedIds), (reader) =>
-            {
-                RSI value = new RSI();
-                value.Rsi = int.Parse(reader.GetString("rssi"));
-                value.IsRequested = reader.GetString("pagalba");
-                value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
-                value.BeaconId = int.Parse(reader.GetString("svyturioid"));
-                data.Add(value);
-            });
-
+                    joinedIds), (reader) =>
+                {
+                    RSI value = new RSI();
+                    value.Rsi = int.Parse(reader.GetString("rssi"));
+                    value.IsRequested = reader.GetString("pagalba");
+                    value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
+                    value.BeaconId = int.Parse(reader.GetString("svyturioid"));
+                    data.Add(value);
+                });
+            }
             return Ok(new SupervisedUsersData
             {
                 SupervisedUsers = supervisedUsers,
@@ -90,10 +93,10 @@ namespace Addicted.Controllers
         }
 
 
-        [HttpPost("{user_id}")]
-        public async Task<IActionResult> Create(string userId, [FromBody] SupervisedUser supervisedUser)
+        [HttpPost("{id}")]
+        public async Task<IActionResult> Create(string id, [FromBody] SupervisedUser supervisedUser)
         {
-            supervisedUser.Watcher = _context.Users.Where(user => user.Id == userId).SingleOrDefault();
+            supervisedUser.Watcher = _context.Users.Where(user => user.Id == id).SingleOrDefault();
 
             await _context.SupervisedUsers.AddAsync(supervisedUser); 
             await _context.SaveChangesAsync();

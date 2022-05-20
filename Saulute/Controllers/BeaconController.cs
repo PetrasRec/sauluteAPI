@@ -115,6 +115,20 @@ namespace Saulute.Controllers
             return Ok();
         }
 
+        [HttpDelete("{id}/userbeacons")]
+        public async Task<IActionResult> DeleteUserBeacons(int id)
+        {
+            var beacs = _context.UserBeacons.FindAsync(id);
+            if (beacs == null)
+            {
+                return NotFound();
+            }
+
+            _context.UserBeacons.Remove(beacs.Result);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
 
         //[HttpPost("/{identification}/live-data")]
         //public async Task<IActionResult> AddBeaconLiveData(string identification, [FromBody] RSI liveData,string help)
@@ -124,7 +138,7 @@ namespace Saulute.Controllers
         //  //  liveData.Beacon = identification;
         //    liveData.IsRequested = help;
         //    var rsi = liveData;   
-            
+
         //    return Ok(rsi);
         //}
 

@@ -53,8 +53,12 @@ namespace Saulute.Controllers
             var joinedIds = string.Join(",", beaconIdx.ToArray());
 
             List<RSI> data = new List<RSI>();
-            MySqlDb.GetDataFromSql(String.Format(
-                    @"
+
+            List<HelpData> helpData = new List<HelpData>();
+            if (joinedIds.Length > 0)
+            {
+                MySqlDb.GetDataFromSql(String.Format(
+                        @"
                     SELECT
                         *
                     FROM 
@@ -66,67 +70,67 @@ namespace Saulute.Controllers
                     AND
                         pagalba=1
                     ",
-                joinedIds), (reader) =>
-            {
-                RSI value = new RSI();
-                value.Rsi = int.Parse(reader.GetString("rssi"));
-                value.IsRequested = reader.GetString("pagalba");
-                value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
-                value.BeaconId = int.Parse(reader.GetString("svyturioid"));
-                data.Add(value);
-            });
-            double closestDist = 100000000;
-            int best_idx = -1;
-            int index = -1;
-            List<HelpData> helpData = new List<HelpData>();
-            foreach (var rsiData in data)
-            {
-                index++;
-                
-                var userRoom = userRooms.FirstOrDefault(userRoom => userRoom.BeaconId == rsiData.BeaconId);
-                if (userRoom == null)
+                    joinedIds), (reader) =>
                 {
-                    continue;
-                }
-                double measuredPower = -65;
-                double N = 2;
-
-                double absRssi = Math.Abs(rsiData.Rsi);
-                Func<double, double> getDist = (rssi) => Math.Pow(10, (measuredPower - rssi) / (10 * N));
-
-                // distances  from the corners to the beacon
-                double corner1Dist = getDist(userRoom.Corner1);
-                double corner2Dist = getDist(userRoom.Corner2);
-                double corner3Dist = getDist(userRoom.Corner3);
-                double corner4Dist = getDist(userRoom.Corner4);
-
-                double longestDist = new double[] { corner1Dist, corner2Dist, corner3Dist, corner4Dist }
-                                        .ToList()
-                                        .Max();
-
-                // longestDist is the radius of the circle
-                // The distance from the user to the beacon
-                double userDist = getDist(rsiData.Rsi);
-
-                double diff = longestDist - userDist;
-                if (diff >= 0)
+                    RSI value = new RSI();
+                    value.Rsi = int.Parse(reader.GetString("rssi"));
+                    value.IsRequested = reader.GetString("pagalba");
+                    value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
+                    value.BeaconId = int.Parse(reader.GetString("svyturioid"));
+                    data.Add(value);
+                });
+                double closestDist = 100000000;
+                int best_idx = -1;
+                int index = -1;
+                foreach (var rsiData in data)
                 {
-                    helpData.Add(new HelpData
+                    index++;
+
+                    var userRoom = userRooms.FirstOrDefault(userRoom => userRoom.BeaconId == rsiData.BeaconId);
+                    if (userRoom == null)
                     {
-                        UserRoom = userRoom,
-                        CallTime = rsiData.Time,
-                    });
-                } else
-                {
-                    helpData.Add(new HelpData
-                    {
-                        UserRoom = null,
-                        CallTime = rsiData.Time,
-                    });
-                }
+                        continue;
+                    }
+                    double measuredPower = -65;
+                    double N = 2;
 
+                    double absRssi = Math.Abs(rsiData.Rsi);
+                    Func<double, double> getDist = (rssi) => Math.Pow(10, (measuredPower - rssi) / (10 * N));
+
+                    // distances  from the corners to the beacon
+                    double corner1Dist = getDist(userRoom.Corner1);
+                    double corner2Dist = getDist(userRoom.Corner2);
+                    double corner3Dist = getDist(userRoom.Corner3);
+                    double corner4Dist = getDist(userRoom.Corner4);
+
+                    double longestDist = new double[] { corner1Dist, corner2Dist, corner3Dist, corner4Dist }
+                                            .ToList()
+                                            .Max();
+
+                    // longestDist is the radius of the circle
+                    // The distance from the user to the beacon
+                    double userDist = getDist(rsiData.Rsi);
+
+                    double diff = longestDist - userDist;
+                    if (diff >= 0)
+                    {
+                        helpData.Add(new HelpData
+                        {
+                            UserRoom = userRoom,
+                            CallTime = rsiData.Time,
+                        });
+                    }
+                    else
+                    {
+                        helpData.Add(new HelpData
+                        {
+                            UserRoom = null,
+                            CallTime = rsiData.Time,
+                        });
+                    }
+
+                }
             }
-
             return Ok(helpData);
         }
 

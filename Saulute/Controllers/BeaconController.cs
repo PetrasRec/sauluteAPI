@@ -74,12 +74,11 @@ namespace Saulute.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Edit([FromBody] UserBeacon beacon)
+        public async Task<IActionResult> Edit(int id, [FromBody] UserBeacon beacon)
         {
-            var dbBeacon = await _context.UserBeacons.FindAsync(beacon.BeaconId);
+            var dbBeacon = _context.UserBeacons.FirstOrDefault(us => us.Id == id);
             dbBeacon.BeaconId = beacon.BeaconId;
-            dbBeacon.User.UserName = beacon.User.UserName;
-
+            dbBeacon.User = _context.Users.Where(user => user.Id == beacon.User.Id).SingleOrDefault();
             await _context.SaveChangesAsync();
             return Ok(dbBeacon);
         }

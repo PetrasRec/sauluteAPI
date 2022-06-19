@@ -41,8 +41,9 @@ namespace Addicted.Controllers
 
             var userRooms = _context
                 .UserRooms
-                .Include(ur => ur.Owner)
-                .Where(ur => ur.Owner.Id == id);
+                .Include(ur => ur.SupervisedUser)
+                .ToList()
+                .Where(ur => supervisedUsers.Find(u => u.Id == ur.SupervisedUser.Id) != null);
 
             var beaconIdx = userRooms.Select(ur => ur.BeaconId.ToString()).ToList();
             var joinedIds = string.Join(",", beaconIdx.ToArray());
@@ -71,9 +72,19 @@ namespace Addicted.Controllers
                     value.IsRequested = reader.GetString("pagalba");
                     value.Time = System.DateTime.Parse(reader.GetString("timestamp"));
                     value.BeaconId = int.Parse(reader.GetString("svyturioid"));
+                    int ?seniorId = userRooms
+                        ?.FirstOrDefault(ur => ur.BeaconId == value.BeaconId)
+                        ?.SupervisedUser
+                        ?.Id;
+
+                    if (seniorId.HasValue)
+                    {
+                        value.SupervisedUserId = seniorId.Value;
+                    }
                     data.Add(value);
                 });
             }
+
             return Ok(new SupervisedUsersData
             {
                 SupervisedUsers = supervisedUsers,
@@ -117,13 +128,21 @@ namespace Addicted.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var supervisedUser = _context.SupervisedUsers.FindAsync(id);
+            var supervisedUser = _context
+                .SupervisedUsers
+                .Single(u => u.Id == id);
+
             if (supervisedUser == null)
             {
                 return NotFound();
             }
 
-            _context.SupervisedUsers.Remove(supervisedUser.Result);
+            var rooms = _context.UserRooms
+                .Include(ur=>ur.SupervisedUser)
+                .Where(ur => ur.SupervisedUser.Id == id);
+
+            _context.UserRooms.RemoveRange(rooms);
+            _context.SupervisedUsers.Remove(supervisedUser);
             await _context.SaveChangesAsync();
             return Ok();
         }

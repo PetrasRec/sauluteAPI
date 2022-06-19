@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using Addicted.Models;
 
 namespace Saulute.Models
 {
@@ -14,6 +15,7 @@ namespace Saulute.Models
         public string Name { get; set; }
         public int BeaconId { get; set; }
         public int RoomId { get; set; }
+        public SupervisedUser SupervisedUser { get; set; }
         public IdentityUser Owner { get; set; }
         public double Corner1 { get; set; }
         public double Corner2 { get; set; }

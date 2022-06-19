@@ -42,12 +42,12 @@ namespace Saulute.Controllers
         }
 
         [HttpGet("owner/{userId}/live/help")]
-        public async Task<IActionResult> GetLiveHelpData(string userId)
+        public async Task<IActionResult> GetLiveHelpData(int userId)
         {
             var userRooms = await _context
               .UserRooms
-              .Include(ur => ur.Owner)
-              .Where(ur => ur.Owner.Id == userId)
+              .Include(ur => ur.SupervisedUser)
+              .Where(ur => ur.SupervisedUser.Id == userId)
               .ToListAsync();
             var beaconIdx = userRooms.Select(ur => ur.BeaconId.ToString()).ToList();
             var joinedIds = string.Join(",", beaconIdx.ToArray());
@@ -135,12 +135,12 @@ namespace Saulute.Controllers
         }
 
         [HttpGet("owner/{userId}/live")]
-        public async Task<IActionResult> GetLiveData(string userId)
+        public async Task<IActionResult> GetLiveData(int userId)
         {
             var userRooms = await _context
                .UserRooms
-               .Include(ur => ur.Owner)
-               .Where(ur => ur.Owner.Id == userId)
+               .Include(ur => ur.SupervisedUser)
+               .Where(ur => ur.SupervisedUser.Id == userId)
                .ToListAsync();
 
             List<RSI> data = new List<RSI>();
@@ -250,23 +250,39 @@ namespace Saulute.Controllers
         }
 
         [HttpGet("owner/{userId}")]
-        public async Task<IActionResult> Get(string userId)
+        public async Task<IActionResult> Get(int userId)
         {
             var userRooms = await _context
                 .UserRooms
+                .Include(ur => ur.SupervisedUser)
                 .Include(ur => ur.Owner)
-                .Where(ur => ur.Owner.Id == userId)
+                .Where(ur => ur.SupervisedUser.Id == userId)
                 .ToListAsync();
 
             return Ok(userRooms);
         }
 
-        [HttpPost("owner/{userId}")]
-        public async Task<IActionResult> Create(string userId, [FromBody] UserRoom userRoom)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRoom(int id, [FromBody] UserRoom newRoom)
+        {
+            var userRoom = await _context
+                .UserRooms
+                .FindAsync(id);
+
+            userRoom.Name = newRoom.Name;
+            await _context.SaveChangesAsync();
+            return Ok(userRoom);
+        }
+
+        [HttpPost("owner/{userId}/supervisedUser/{supervisedId}")]
+        public async Task<IActionResult> Create(string userId, int supervisedId, [FromBody] UserRoom userRoom)
         {
             var user = _context.GetAllUsers().Single(u => u.Id == userId);
+            var supervisedUser = _context.SupervisedUsers.Single(u => u.Id == supervisedId);
 
             userRoom.Owner = user;
+            userRoom.SupervisedUser = supervisedUser;
 
             await _context.UserRooms.AddAsync(userRoom);
             await _context.SaveChangesAsync();

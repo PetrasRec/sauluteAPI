@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Saulute.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,5 +16,6 @@ namespace Addicted.Models
         [Required]
         public string Surname { get; set; }
         public IdentityUser Watcher { get; set; }
+        public ICollection<UserRoom> Rooms { get; set; }
     }
 }

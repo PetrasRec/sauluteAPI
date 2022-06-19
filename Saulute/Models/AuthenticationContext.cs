@@ -23,6 +23,11 @@ namespace Addicted.Models
                 .WithOne()
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<SupervisedUser>()
+              .HasMany(b => b.Rooms)
+              .WithOne()
+              .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
 

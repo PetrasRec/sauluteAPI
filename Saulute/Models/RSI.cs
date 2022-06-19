@@ -9,5 +9,6 @@ namespace Saulute.Models
         public DateTime Time { get; set; }
         public string IsRequested   { get; set; }
         public int BeaconId { get; set; }
+        public int SupervisedUserId { get; set; }
     }
 }
